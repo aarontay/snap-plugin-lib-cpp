@@ -23,6 +23,7 @@ nobase_include_HEADERS =         \
     snap/grpc_export_impl.h      \
     snap/plugin.h                \
     snap/lib_setup_impl.h        \
+    snap/flags.hpp               \
     snap/proxy/plugin_proxy.h    \
     snap/proxy/collector_proxy.h \
     snap/proxy/processor_proxy.h \

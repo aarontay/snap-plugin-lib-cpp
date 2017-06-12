@@ -51,78 +51,78 @@ using Plugin::Meta;
 Plugin::GRPCExporter::GRPCExporter() : impl(std::shared_ptr<GRPCExportImpl>(implement())) {}
 
 future<void> Plugin::GRPCExporter::ExportPlugin(shared_ptr<PluginInterface> plugin, const Meta* meta) {
-  return this->impl->DoExport(plugin, meta);
+    return this->impl->DoExport(plugin, meta);
 }
 
 Plugin::GRPCExportImpl* Plugin::GRPCExporter::implement() {
-  return new GRPCExportImpl();
+    return new GRPCExportImpl();
 }
 
 future<void> Plugin::GRPCExportImpl::DoExport(shared_ptr<PluginInterface> plugin, const Meta *meta) {
-  this->plugin = std::move(plugin);
-  this->meta = meta;
-  doConfigure();
-  doRegister();
-  doAdvertise();
-  auto self = this->shared_from_this();
-  return std::async(std::launch::deferred, [=](){ self->doJoin(); });
+    this->plugin = std::move(plugin);
+    this->meta = meta;
+    doConfigure();
+    doRegister();
+    doAdvertise();
+    auto self = this->shared_from_this();
+    return std::async(std::launch::deferred, [=](){ self->doJoin(); });
 }
 
 void Plugin::GRPCExportImpl::doConfigure() {
-  string server_address = "127.0.0.1:0";
+    string server_address = "127.0.0.1:0";
 
-  switch (plugin->GetType()) {
-    case Plugin::Collector:
-      this->service.reset(new Proxy::CollectorImpl(plugin->IsCollector()));
-      break;
-    case Plugin::Processor:
-      this->service.reset(new Proxy::ProcessorImpl(plugin->IsProcessor()));
-      break;
-    case Plugin::Publisher:
-      this->service.reset(new Proxy::PublisherImpl(plugin->IsPublisher()));
-      break;
-  }
-  builder.reset(new grpc::ServerBuilder());
-  builder->AddListeningPort(server_address, grpc::InsecureServerCredentials(),
-                           &this->port);
-
+    switch (plugin->GetType()) {
+        case Plugin::Collector:
+            this->service.reset(new Proxy::CollectorImpl(plugin->IsCollector()));
+            break;
+        case Plugin::Processor:
+            this->service.reset(new Proxy::ProcessorImpl(plugin->IsProcessor()));
+            break;
+        case Plugin::Publisher:
+            this->service.reset(new Proxy::PublisherImpl(plugin->IsPublisher()));
+            break;
+    }
+    builder.reset(new grpc::ServerBuilder());
+    builder->AddListeningPort(server_address, grpc::InsecureServerCredentials(),
+                            &this->port);
 }
 
 void Plugin::GRPCExportImpl::doRegister() {
-  builder->RegisterService(service.get());
-  this->server = std::move(builder->BuildAndStart());
+    builder->RegisterService(service.get());
+    this->server = std::move(builder->BuildAndStart());
 }
 
 void Plugin::GRPCExportImpl::doAdvertise() {
-  std::stringstream ss;
-  ss << "127.0.0.1:" << port;
-  json j = {
-      {"Meta", {
-                   {"Type", meta->type},
-                   {"Name", meta->name},
-                   {"Version", meta->version},
-                   {"RPCType", meta->rpc_type},
-                   {"RPCVersion", RPC_VERSION},
-                   {"ConcurrencyCount", meta->concurrency_count},
-                   {"Exclusive", meta->exclusive},
+    std::stringstream ss;
+    ss << "127.0.0.1:" << port;
+    json j = {
+        {"Meta", {
+                {"Type", meta->type},
+                {"Name", meta->name},
+                {"Version", meta->version},
+                {"RPCType", meta->rpc_type},
+                {"RPCVersion", RPC_VERSION},
+                {"ConcurrencyCount", meta->concurrency_count},
+                {"Exclusive", meta->exclusive},
 
-                   // The gRPC client in Snap does not use the `Unsecure` metadata key at
-                   // this time, as it is used for payload encryption.  With gRPC, encryption
-                   // is done via its transport, and this will be updated once support for
-                   // that feature lands in snapteld.
-                   {"Unsecure", true},
-                   {"CacheTTL", meta->cache_ttl.count()},
-                   {"RoutingStrategy", meta->strategy}
-               }},
-      {"ListenAddress", ss.str()},
-      {"Type", meta->type},
-      {"State", 0},
-      {"ErrMessage", ""},
-      {"Version", meta->version},
-  };
-  cout << j << endl;
+                // The gRPC client in Snap does not use the `Unsecure` metadata key at
+                // this time, as it is used for payload encryption.  With gRPC, encryption
+                // is done via its transport, and this will be updated once support for
+                // that feature lands in snapteld.
+                {"Unsecure", true},
+                {"CacheTTL", meta->cache_ttl.count()},
+                {"RoutingStrategy", meta->strategy}
+            }
+        },
+        {"ListenAddress", ss.str()},
+        {"Type", meta->type},
+        {"State", 0},
+        {"ErrMessage", ""},
+        {"Version", meta->version},
+    };
+    cout << j << endl;
 }
 
 void Plugin::GRPCExportImpl::doJoin() {
-  server->Wait();
+    server->Wait();
 }

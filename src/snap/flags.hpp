@@ -1,3 +1,6 @@
+#ifndef PLUGIN_FLAGS_HPP
+#define PLUGIN_FLAGS_HPP
+
 #include <boost/program_options.hpp>
 #include <iostream>
 #include <fstream>
@@ -7,17 +10,16 @@ namespace po = boost::program_options;
 using namespace std;
 
 namespace Plugin {
+    //helper function to simplify main part
+    template<class T>
+    ostream& operator<<(ostream& os, const vector<T>& v) {
+        copy(v.begin(), v.end(), ostream_iterator<T>(os, " "));
+        return os;
+    };
+    
     class Flags {
-    private:        
-        // helper function to simplify main part
-        template<class T>
-        ostream& operator<<(ostream& os, const vector<T>& v) {
-            copy(v.begin(), v.end(), ostream_iterator<T>(os, " "));
-            return os;
-        }
-
     public:
-        int Options(int argc, const char *argv[]) {
+        int CmdLineOptions(int argc, char **argv) {
             try {
                 int sa_port, log_lev;
                 string options_file;
@@ -70,18 +72,14 @@ namespace Plugin {
                 notify(vm);
 
                 ifstream ifs(options_file.c_str());
-                if (!ifs) {
-                    cout << "Can not open options configuration file: " << options_file << endl;
-                    return 0;
-                }
-                else {
+                if (ifs) {
                     store(parse_config_file(ifs, config_file_options), vm);
                     notify(vm);
                 }
 
                 if (vm.count("help")) {
                     cout << visible << endl;
-                    return 0;
+                    exit(0);
                 }
 
                 if (vm.count("version")) {
@@ -95,7 +93,6 @@ namespace Plugin {
                 if (vm.count("stand-alone")) {
                     cout << " Stand-alone enabled" << endl;
                 }
-                
             }
             catch (exception &e) {
                 cout << e.what() << endl;
@@ -103,69 +100,7 @@ namespace Plugin {
             }
             return 0;
         }
-    } // namespace Flags
+    };
 } // namespace Plugin
 
-
-/*
-std::string flConfig, flPort, flCertPath, flKeyPath, flRootCertPaths;
-int flLogLevel = 2, flHTTPPort = 8181;
-bool flPprof, flTLS, flStandAlone;
-
-void read_command_line(int argc, char **argv) {
-    opterr = 0;
-    while(1) {
-        static struct option long_options[] = 
-        {
-            {"config",           required_argument, 0, 'a'}, // config to use in JSON format
-            {"port",             required_argument, 0, 'b'}, // port GRPC will listen on
-            {"log-level",        required_argument, 0, 'c'}, // log level - 0:panic 1:fatal 2:error 3:warn 4:info 5:debug; default: 2
-            {"pprof",            required_argument, 0, 'd'}, // enable pprof
-            {"tls",              required_argument, 0, 'e'}, // enable TLS
-            {"cert-path",        required_argument, 0, 'f'}, // necessary to provide when TLS enabled
-            {"key-path",         required_argument, 0, 'g'}, // necessary to provide when TLS enabled
-            {"root-key-paths",   required_argument, 0, 'h'}, // root paths separator
-            {"stand-alone",      required_argument, 0, 'i'}, // enable stand alone plugin
-            {"stand-alone-port", required_argument, 0, 'j'}, // specify http port when stand-alone is set
-            {0, 0, 0, 0}
-        };
-        int option_index = 0;
-        int i = getopt_long (argc, argv, "a:b:c:d:e:f:g:h:i:j")
-
-        if (i == -1) break; // Detect end of options
-        switch(i) {
-            case 'a':
-                
-                break;
-            case 'b':
-                
-                break;
-            case 'c':
-                
-                break;      
-            case 'd':
-            
-                break;
-            case 'e':
-                
-                break;
-            case 'f':
-            
-                break;
-            case 'g':
-            
-                break;
-            case 'h':
-                
-                break;
-            case 'i':
-                
-                break;
-            case 'j':
-
-                break;
-        }
-
-    }
-}
-*/
+#endif // PLUGIN_FLAGS_HPP

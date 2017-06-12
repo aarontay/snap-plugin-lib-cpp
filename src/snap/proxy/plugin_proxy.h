@@ -20,26 +20,24 @@ limitations under the License.
 #include "snap/plugin.h"
 
 namespace Plugin {
-namespace Proxy {
+    namespace Proxy {
+        class PluginImpl final {
+        public:
+            explicit PluginImpl(Plugin::PluginInterface* plugin);
 
-class PluginImpl final {
- public:
-  explicit PluginImpl(Plugin::PluginInterface* plugin);
-
-  grpc::Status Ping(grpc::ServerContext* context, const rpc::Empty* req,
-                    rpc::ErrReply* resp);
+            grpc::Status Ping(grpc::ServerContext* context, const rpc::Empty* req,
+                                rpc::ErrReply* resp);
 
 
-  grpc::Status Kill(grpc::ServerContext* context, const rpc::KillArg* req,
-                    rpc::ErrReply* response);
+            grpc::Status Kill(grpc::ServerContext* context, const rpc::KillArg* req,
+                                rpc::ErrReply* response);
 
-  grpc::Status GetConfigPolicy(grpc::ServerContext* context,
-                               const rpc::Empty* req,
-                               rpc::GetConfigPolicyReply* resp);
+            grpc::Status GetConfigPolicy(grpc::ServerContext* context,
+                                        const rpc::Empty* req,
+                                        rpc::GetConfigPolicyReply* resp);
 
- private:
-  Plugin::PluginInterface* plugin;
-};
-
-}  // namespace Proxy
+        private:
+            Plugin::PluginInterface* plugin;
+        };
+    }  // namespace Proxy
 }  // namespace Plugin

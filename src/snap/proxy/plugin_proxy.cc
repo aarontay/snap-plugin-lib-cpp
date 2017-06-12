@@ -32,16 +32,16 @@ PluginImpl::PluginImpl(Plugin::PluginInterface* plugin) : plugin(plugin) {}
 
 Status PluginImpl::Ping(ServerContext* context, const Empty* req,
                         ErrReply* resp) {
-  return Status::OK;
+    return Status::OK;
 }
 
 Status PluginImpl::Kill(ServerContext* context, const KillArg* req,
                         ErrReply* resp) {
-  return Status::OK;
+    return Status::OK;
 }
 
 Status PluginImpl::GetConfigPolicy(ServerContext* context, const Empty* req,
                                    GetConfigPolicyReply* resp) {
-  *resp = plugin->get_config_policy();
-  return Status::OK;
+    *resp = plugin->get_config_policy();
+    return Status::OK;
 }

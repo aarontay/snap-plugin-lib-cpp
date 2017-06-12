@@ -27,31 +27,30 @@ limitations under the License.
 #define RPC_VERSION 1
 
 namespace Plugin {
+    /*
+    * Implementation details for GRPC plugin exporter.
+    *
+    * Instance is supposed to be held referenced by shared pointer, to retain
+    * the resources (ie.: service and server).
+    */
+    class GRPCExportImpl : public std::enable_shared_from_this<GRPCExportImpl> {
+    public:
+        std::future<void> DoExport(std::shared_ptr<PluginInterface> plugin, const Meta* meta);
+    
+    protected:
+        int port;
+        std::shared_ptr<PluginInterface> plugin;
+        const Meta* meta;
+        std::unique_ptr<grpc::Service> service;
+        std::unique_ptr<grpc::ServerBuilder> builder;
+        std::unique_ptr<grpc::Server> server;
 
-/*
- * Implementation details for GRPC plugin exporter.
- *
- * Instance is supposed to be held referenced by shared pointer, to retain
- * the resources (ie.: service and server).
- */
-class GRPCExportImpl : public std::enable_shared_from_this<GRPCExportImpl> {
-public:
-  std::future<void> DoExport(std::shared_ptr<PluginInterface> plugin, const Meta* meta);
-protected:
-  int port;
-  std::shared_ptr<PluginInterface> plugin;
-  const Meta* meta;
-  std::unique_ptr<grpc::Service> service;
-  std::unique_ptr<grpc::ServerBuilder> builder;
-  std::unique_ptr<grpc::Server> server;
+        /* steps of the export procedure */
+        void doConfigure();
+        void doRegister();
+        void doAdvertise();
 
-  /* steps of the export procedure */
-  void doConfigure();
-  void doRegister();
-  void doAdvertise();
-
-  /* blocking method - waits for the server to finish. */
-  void doJoin();
-};
-
+        /* blocking method - waits for the server to finish. */
+        void doJoin();
+    };
 }

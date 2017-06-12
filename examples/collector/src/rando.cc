@@ -15,10 +15,12 @@ limitations under the License.
 
 #include <time.h>
 #include <vector>
+#include <iostream>
 
 #include <snap/config.h>
 #include <snap/plugin.h>
 #include <snap/metric.h>
+#include <snap/flags.hpp>
 
 using Plugin::Config;
 using Plugin::ConfigPolicy;
@@ -27,65 +29,61 @@ using Plugin::Meta;
 using Plugin::Type;
 
 const ConfigPolicy Rando::get_config_policy() {
-  ConfigPolicy policy;
-  policy.add_rule({"intel", "cpp"},
-  Plugin::StringRule{
-    "username",
-    {
-      "root",
-      false
-    }
-  });
-  policy.add_rule({"intel", "cpp", "mock", "randomnumber", "one"},
-  Plugin::StringRule{
-    "password",
-    {
-      "h4ck3r",
-      true
-    }
-  });
-  return policy;
+    ConfigPolicy policy;
+    policy.add_rule({"intel", "cpp"},
+        Plugin::StringRule{
+            "username",
+            {"root", false}
+        }
+    );
+    policy.add_rule({"intel", "cpp", "mock", "randomnumber", "one"},
+        Plugin::StringRule{
+            "password",
+            {"h4ck3r", true}
+        }
+    );
+    return policy;
 }
 
 std::vector<Metric> Rando::get_metric_types(Config cfg) {
-  std::vector<Metric> metrics = {
-    {
-      {
-        {"intel", "", ""},
-        {"cpp", "", ""},
-        {"mock", "", ""},
-        {"randomnumber", "", ""},
-        {"one", "", ""},
-      },
-      "",
-      "the first random number"
-    },
-    {
-      {
-        {"intel", "", ""},
-        {"cpp", "", ""},
-        {"mock", "", ""},
-        {"randomnumber", "", ""},
-        {"two", "", ""},
-      },
-      "",
-      "the second random number"
-    }
-  };
-  return metrics;
+    std::vector<Metric> metrics = {
+        {
+            {
+                {"intel", "", ""},
+                {"cpp", "", ""},
+                {"mock", "", ""},
+                {"randomnumber", "", ""},
+                {"one", "", ""},
+            },
+            "",
+            "the first random number"
+        },
+        {
+            {
+                {"intel", "", ""},
+                {"cpp", "", ""},
+                {"mock", "", ""},
+                {"randomnumber", "", ""},
+                {"two", "", ""},
+            },
+            "",
+            "the second random number"
+        }
+    };
+    return metrics;
 }
 
 void Rando::collect_metrics(std::vector<Metric> &metrics) {
-  std::vector<Metric>::iterator mets_iter;
-  unsigned int seed = time(NULL);
-  for (mets_iter = metrics.begin(); mets_iter != metrics.end(); mets_iter++) {
-    mets_iter->set_data(rand_r(&seed) % 1000);
-    mets_iter->set_timestamp();
-  }
+    std::vector<Metric>::iterator mets_iter;
+    unsigned int seed = time(NULL);
+    for (mets_iter = metrics.begin(); mets_iter != metrics.end(); mets_iter++) {
+        mets_iter->set_data(rand_r(&seed) % 1000);
+        mets_iter->set_timestamp();
+    }
 }
 
-int main() {
-  Meta meta(Type::Collector, "rando", 1);
-  Rando plg = Rando();
-  start_collector(&plg, meta);
+int main(int argc, char **argv) {
+    Meta meta(Type::Collector, "rando", 1);
+    Rando plg = Rando(argc, argv);
+    start_collector(&plg, meta);
 }

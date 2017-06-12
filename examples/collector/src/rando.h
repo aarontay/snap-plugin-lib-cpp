@@ -18,10 +18,15 @@ limitations under the License.
 #include <snap/config.h>
 #include <snap/metric.h>
 #include <snap/plugin.h>
+#include <snap/flags.hpp>
 
 class Rando final : public Plugin::CollectorInterface {
- public:
-  const Plugin::ConfigPolicy get_config_policy();
-  std::vector<Plugin::Metric> get_metric_types(Plugin::Config cfg);
-  void collect_metrics(std::vector<Plugin::Metric> &metrics);
+    public:
+    Rando(int argc, char **argv) { 
+        Plugin::Flags cli;
+        cli.CmdLineOptions(argc, argv);
+    }
+    const Plugin::ConfigPolicy get_config_policy();
+    std::vector<Plugin::Metric> get_metric_types(Plugin::Config cfg);
+    void collect_metrics(std::vector<Plugin::Metric> &metrics);
 };

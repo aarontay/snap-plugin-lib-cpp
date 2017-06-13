@@ -12,15 +12,35 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 #pragma once
-
+#include <iostream>
+#include <chrono>
+#include <ctime>
+#include <iomanip>
 #include <grpc++/grpc++.h>
 
 #include "snap/rpc/plugin.pb.h"
-
 #include "snap/plugin.h"
 
 namespace Plugin {
     namespace Proxy {
+        template<typename Clock, typename Duration>
+        std::ostream &operator<<(std::ostream &stream,
+        const std::chrono::time_point<Clock, Duration> &time_point) {
+            const time_t time = Clock::to_time_t(time_point);
+        #if __GNUC__ > 4 || \
+            ((__GNUC__ == 4) && __GNUC_MINOR__ > 8 && __GNUC_REVISION__ > 1)
+            // Maybe the put_time will be implemented later?
+            struct tm tm;
+            localtime_r(&time, &tm);
+            return stream << std::put_time(&tm, "%c"); // Print standard date&time
+        #else
+            char buffer[26];
+            ctime_r(&time, buffer);
+            buffer[24] = '\0';  // Removes the newline that is added
+            return stream << buffer;
+        #endif
+        }
+
         class PluginImpl final {
         public:
             explicit PluginImpl(Plugin::PluginInterface* plugin);
@@ -36,8 +56,17 @@ namespace Plugin {
                                         const rpc::Empty* req,
                                         rpc::GetConfigPolicyReply* resp);
 
+            void HeartbeatWatch();
+
         private:
             Plugin::PluginInterface* plugin;
+            std::chrono::system_clock::time_point _lastPing;
+            // PingTimeoutLimit is the number of successively missed pin health checks
+            // which must occur before the plugin is stopped
+            int _pingTimeoutLimit = 3;            
+            // PingTimeoutDuration is the duration during which a ping healthcheck
+            // should be received
+            std::chrono::seconds _pingTimeoutDuration{3}; 
         };
     }  // namespace Proxy
 }  // namespace Plugin

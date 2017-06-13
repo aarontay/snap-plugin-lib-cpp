@@ -19,6 +19,9 @@ limitations under the License.
 #include <functional>
 #include <sstream>
 #include <string>
+#include <thread>
+
+#include <iostream>
 
 #include <grpc++/grpc++.h>
 
@@ -106,9 +109,12 @@ void Plugin::start_publisher(PublisherInterface* publisher,
 }
 
 static void start_plugin(Plugin::PluginInterface* plugin, const Plugin::Meta& meta) {
+    Plugin::Proxy::PluginImpl prox(plugin);
+    std::thread t1(&Plugin::Proxy::PluginImpl::HeartbeatWatch, prox);
     auto exporter = Plugin::LibSetup::exporter_provider();
     // disable deleting the plugin instance
     auto plugin_ptr = shared_ptr<Plugin::PluginInterface>(plugin, [](void*){});
     auto completion = exporter->ExportPlugin(plugin_ptr, &meta);
     completion.get();
+    t1.join();
 }

@@ -87,7 +87,7 @@ namespace Plugin {
                 }
 
                 if (vm.count("options-file")) {
-                    cout << "Options configuration file is: " << vm["options-file"].as<string>() << endl;
+//                    cout << "Options configuration file is: " << vm["options-file"].as<string>() << endl;
                 }
 
                 if (vm.count("stand-alone")) {

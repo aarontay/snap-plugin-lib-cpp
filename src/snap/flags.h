@@ -69,6 +69,12 @@ namespace Plugin {
         int setConfigFileFlags();
         int SetCombinedFlags();
 
+        int SetFlags() { 
+            if (SetDefaultFlags() != 0) return 1;
+            if (SetCombinedFlags() != 0) return 1;
+            return 0;
+        }
+
         int ParseCommandLineFlags(const int &argc, char **argv);
         int ParseConfigFileFlags();
         int ParseConfigFileFlags(std::string filePathAndName);

@@ -5,12 +5,15 @@
 #include <iostream>
 #include <fstream>
 #include <iterator>
+#include <spdlog/spdlog.h>
 
 #define COMMAND_DESC "COMMANDS"
 #define GLOBAL_DESC "GLOBAL OPTIONS"
 #define ADDITIONAL_DESC ""
 
 namespace po = boost::program_options;
+namespace spd = spdlog;
+
 using namespace std;
 
 namespace Plugin {
@@ -23,6 +26,8 @@ namespace Plugin {
     
     class Flags {
     private:
+        std::shared_ptr<spd::logger> _logger;
+
         po::variables_map _flags;
         
         // Initial option descriptions
@@ -50,6 +55,10 @@ namespace Plugin {
             Custom
         };
 
+        Flags() {
+            _logger = spdlog::stdout_logger_mt("flags");
+        }
+
         int addDefaultCommandFlags();
         int addDefaultGlobalFlags();
         int addDefaultHiddenFlags();
@@ -75,14 +84,24 @@ namespace Plugin {
             return 0;
         }
 
-        int ParseCommandLineFlags(const int &argc, char **argv);
-        int ParseConfigFileFlags();
-        int ParseConfigFileFlags(std::string filePathAndName);
+        int parseCommandLineFlags(const int &argc, char **argv);
+        int parseConfigFileFlags(std::string filePathAndName = "");
+        int ParseFlags(const int &argc, char **argv, std::string filePathAndName = "");
 
         void ShowVariablesMap();
-        int helpFlagCalled();
 
         po::variables_map GetFlagsVM() { return _flags; }
+
+        bool GetFlagBoolValue(const char *flagKey);
+        int GetFlagIntValue(const char *flagKey);
+        std::string GetFlagStrValue(const char *flagKey);
+
+        void SetFlagsLogLevel(const int &logLevel = 2);
+
+        int helpFlagCalled() {
+            std::cout << _visible << std::endl;
+            return 0;
+        }
 
         po::options_description GetCommandOptions() { return _command; }
         void PrintCommandOptions() { std::cout << _command << std::endl; }
@@ -104,7 +123,6 @@ namespace Plugin {
 
         po::options_description GetConfigFileOptions() { return _config_file; }
         void PrintConfigFileOptions() { std::cout << _config_file << std::endl; }
-
     };
 } // namespace Plugin
 

@@ -61,6 +61,9 @@ Plugin::GRPCExportImpl* Plugin::GRPCExporter::implement() {
 future<void> Plugin::GRPCExportImpl::DoExport(shared_ptr<PluginInterface> plugin, const Meta *meta) {
     this->plugin = std::move(plugin);
     this->meta = meta;
+    
+    //if (this->meta->stand_alone) cout << "I'M STANDING ALONE"<< endl;
+    
     doConfigure();
     doRegister();
     doAdvertise();
@@ -81,6 +84,12 @@ void Plugin::GRPCExportImpl::doConfigure() {
         case Plugin::Publisher:
             this->service.reset(new Proxy::PublisherImpl(plugin->IsPublisher()));
             break;
+        //TODO: aarontay
+        //case Plugin::StreamCollector
+        //
+        // break;
+        //default:
+        // _plogger->Fatal("unknown plugin type");
     }
     builder.reset(new grpc::ServerBuilder());
     builder->AddListeningPort(server_address, grpc::InsecureServerCredentials(),
@@ -109,9 +118,15 @@ void Plugin::GRPCExportImpl::doAdvertise() {
                 // this time, as it is used for payload encryption.  With gRPC, encryption
                 // is done via its transport, and this will be updated once support for
                 // that feature lands in snapteld.
-                {"Unsecure", true},
+                {"Unsecure", meta->unsecure},
                 {"CacheTTL", meta->cache_ttl.count()},
-                {"RoutingStrategy", meta->strategy}
+                {"RoutingStrategy", meta->strategy},
+                {"CertPath", ""},
+                {"KeyPath", ""},
+                {"TLSEnabled", false},
+                {"RootCertPaths", false},
+                {"StandAloneEnabled", true},
+                {"StandAlonePort", 8183},
             }
         },
         {"ListenAddress", ss.str()},

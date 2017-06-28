@@ -116,7 +116,7 @@ namespace Plugin {
         const std::map<std::string, std::string>& tags() const;
 
         /**
-        * set_ns adds tags to the metric in its `rpc::Metric` ptr.
+        * add_tag adds tags to the metric in its `rpc::Metric` ptr.
         * It also invalidates the memoization cache of the tags if it is
         * present.
         * @see memo_tags_ptr

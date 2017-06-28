@@ -1,8 +1,10 @@
+#include "flags.h"
+//#include <snap/flags.h>
+
 #include <map>
 #include <iostream>
 #include <boost/any.hpp>
-#include "flags.h"
-//#include <snap/flags.h>
+#include <spdlog/spdlog.h>
 
 // Set default option values
 #define STAND_ALONE_PORT 8181
@@ -10,17 +12,19 @@
 #define OPTIONS_FILE "options.cfg"
 
 namespace po = boost::program_options;
-
+namespace spd = spdlog;
 // Group of options allowed only on command line
 int Plugin::Flags::addDefaultCommandFlags() {
     try {
         _command.add_options()
             ("help,h", "Display available command-line options")
             ("version,v", "Print the version");
+
+        
         return 0;
     } 
     catch (std::exception &e) {
-        std::cout << e.what() << std::endl;
+        _logger->error(e.what());
         return 1;
     }
 }
@@ -46,7 +50,7 @@ int Plugin::Flags::addDefaultGlobalFlags() {
         return 0;
     }
     catch (std::exception &e) {
-        std::cout << e.what() << std::endl;
+        _logger->error(e.what());
         return 1;
     }
 }
@@ -59,7 +63,7 @@ int Plugin::Flags::addDefaultHiddenFlags() {
         return 0;
     }
     catch (std::exception &e) {
-        std::cout << e.what() << std::endl;
+        _logger->error(e.what());
         return 1;
     }
 }
@@ -72,13 +76,13 @@ int Plugin::Flags::SetDefaultFlags() {
         return 0;
     }
     catch (std::exception &e) {
-        std::cout << e.what() << std::endl;
+        _logger->error(e.what());
         return 1;
     }
 }
 
 int Plugin::Flags::addBoolFlag(const char *optionName, const char *description,
-                Plugin::Flags::FlagLevel flagLevel) {
+                                Plugin::Flags::FlagLevel flagLevel) {
     try {
         switch (flagLevel) {
         case Command:
@@ -98,18 +102,18 @@ int Plugin::Flags::addBoolFlag(const char *optionName, const char *description,
                     (optionName, description);
             break;
         default:
-            std::cout << "Flag level not supported" << std::endl;
+            _logger->warn("Flag level not supported");
             return 1;
         }
         return 0;
     } 
     catch (std::exception &e) {
-        std::cout << e.what() << std::endl;
+        _logger->error(e.what());
         return 1;
     }
 }
 int Plugin::Flags::addIntFlag(const char *optionName, const char *description,
-                    FlagLevel flagLevel) {
+                                FlagLevel flagLevel) {
     try {
         switch (flagLevel) {
         case Command:
@@ -129,18 +133,19 @@ int Plugin::Flags::addIntFlag(const char *optionName, const char *description,
                     (optionName, po::value<int>()->composing(), description);
             break;
         default:
-            std::cout << "Flag level not supported" << std::endl;
+            _logger->warn("Flag level not supported");
             return 1;
         }
         return 0;
     } 
     catch (std::exception &e) {
-        std::cout << e.what() << std::endl;
+        _logger->error(e.what());
         return 1;
     }
 }
+
 int Plugin::Flags::addStringFlag(const char *optionName, const char *description,
-                    FlagLevel flagLevel) {
+                                FlagLevel flagLevel) {
                             try {
         switch (flagLevel) {
         case Command:
@@ -160,13 +165,13 @@ int Plugin::Flags::addStringFlag(const char *optionName, const char *description
                     (optionName, po::value<std::string>()->composing(), description);
             break;
         default:
-            std::cout << "Flag level not supported" << std::endl;
+            _logger->warn("Flag level not supported");
             return 1;
         }
         return 0;
     } 
     catch (std::exception &e) {
-        std::cout << e.what() << std::endl;
+        _logger->error(e.what());
         return 1;
     }
 }
@@ -183,13 +188,13 @@ int Plugin::Flags::AddFlag(const char * optionName, const char * description,
         case String:
             return addStringFlag(optionName, description, flagLevel);
         default:
-            std::cout << "Flag type not supported" << std::endl;
+            _logger->warn("Flag type not supported");
             return 1;
         }
         return 0;
     } 
     catch (std::exception &e) {
-        std::cout << e.what() << std::endl;
+        _logger->error(e.what());
         return 1;
     }
 }
@@ -200,7 +205,7 @@ int Plugin::Flags::setVisibleFlags() {
         return 0;
     }
     catch (std::exception &e) {
-        std::cout << e.what() << std::endl;
+        _logger->error(e.what());
         return 1;
     }
 }
@@ -211,7 +216,7 @@ int Plugin::Flags::setCommandLineFlags() {
         return 0;
     }
     catch (std::exception &e) {
-        std::cout << e.what() << std::endl;
+        _logger->error(e.what());
         return 1;
     }
 }
@@ -222,7 +227,7 @@ int Plugin::Flags::setConfigFileFlags() {
         return 0;
     }
     catch (std::exception &e) {
-        std::cout << e.what() << std::endl;
+        _logger->error(e.what());
         return 1;
     }
 }
@@ -235,12 +240,12 @@ int Plugin::Flags::SetCombinedFlags() {
         return 0;
     }
     catch (std::exception &e) {
-        std::cout << e.what() << std::endl;
+        _logger->error(e.what());
         return 1;
     }
 }
 
-int Plugin::Flags::ParseCommandLineFlags(const int &argc, char **argv) {
+int Plugin::Flags::parseCommandLineFlags(const int &argc, char **argv) {
     try {
         po::store(po::command_line_parser(argc, argv).options(_command_line).run(), _flags);
         po::notify(_flags);
@@ -251,14 +256,16 @@ int Plugin::Flags::ParseCommandLineFlags(const int &argc, char **argv) {
         return 0;
     }
     catch (std::exception &e) {
-        std::cout << e.what() << std::endl;
+        _logger->error(e.what());
         return 1;
     }
 }
 
-int Plugin::Flags::ParseConfigFileFlags() {
+int Plugin::Flags::parseConfigFileFlags(std::string filePathAndName /*=""*/) {
     try {
-        ifstream ifs(_options_file.c_str());
+        ifstream ifs;
+        filePathAndName.empty() ? ifs.open(_options_file.c_str()) :
+            ifs.open(filePathAndName.c_str());
         if (ifs) {
             po::store(parse_config_file(ifs, _config_file), _flags);
             po::notify(_flags);
@@ -266,40 +273,161 @@ int Plugin::Flags::ParseConfigFileFlags() {
         return 0;
     }
     catch (std::exception &e) {
-        std::cout << e.what() << std::endl;
+        _logger->error(e.what());
         return 1;
     }
 }
 
-int Plugin::Flags::ParseConfigFileFlags(std::string filePathAndName) {
+int Plugin::Flags::ParseFlags(const int &argc, char **argv,
+                                std::string filePathAndName /*=""*/) {
     try {
-        ifstream ifs(filePathAndName.c_str());
-        if (ifs) {
-            po::store(parse_config_file(ifs, _config_file), _flags);
-            po::notify(_flags);
-        }
+        if (parseCommandLineFlags(argc, argv) != 0) return 1;
+        if (parseConfigFileFlags(filePathAndName) != 0) return 1;
         return 0;
     }
     catch (std::exception &e) {
-        std::cout << e.what() << std::endl;
+        _logger->error(e.what());
         return 1;
     }
 }
 
 void Plugin::Flags::ShowVariablesMap() {
-   for (const auto& it : _flags) {
-        std::cout << it.first.c_str() << " ";
-        auto& value = it.second.value();
-        if (auto v = boost::any_cast<int>(&value))
-            std::cout << *v << std::endl;
-        else if (auto v = boost::any_cast<std::string>(&value))
-            std::cout << *v << std::endl;
-        else
-            std::cout << "error" << std::endl;
+    try {
+        for (const auto& it : _flags) {
+            std::cout << it.first.c_str() << " ";
+            auto& value = it.second.value();
+            if (auto v = boost::any_cast<bool>(&value))
+                std::cout << *v << std::endl;
+            else if (auto v = boost::any_cast<int>(&value))
+                std::cout << *v << std::endl;
+            else if (auto v = boost::any_cast<std::string>(&value))
+                std::cout << *v << std::endl;
+            else
+                _logger->warn("variable map value type not supported");
+        }
+    }
+    catch (std::exception &e) {
+        _logger->error(e.what());
     }
 }
 
-int Plugin::Flags::helpFlagCalled() {
-    std::cout << _visible << std::endl;
-    return 0;
+bool Plugin::Flags::GetFlagBoolValue(const char *flagKey) {
+    try {
+        if (_flags.count(flagKey)) {
+            auto &value = _flags[flagKey].value();
+            if (auto v = boost::any_cast<bool>(&value)) {
+                return *v;
+            }
+        }
+
+        _logger->warn("{0} is not a bool type", flagKey);
+        return 0;
+    }
+    catch (std::exception &e) {
+        _logger->error(e.what());
+        return 0;
+    }
 }
+
+int Plugin::Flags::GetFlagIntValue(const char *flagKey) {
+    try {
+        if (_flags.count(flagKey)) {
+            auto &value = _flags[flagKey].value();
+            if (auto v = boost::any_cast<int>(&value)) {
+                return *v;
+            }
+        }
+        _logger->warn("{0} is not an int type", flagKey);
+        return 0;
+    }
+    catch (std::exception &e) {
+        _logger->error(e.what());
+        return 0;
+    }
+}
+
+std::string Plugin::Flags::GetFlagStrValue(const char *flagKey) {
+    try {
+        if (_flags.count(flagKey)) {
+            auto &value = _flags[flagKey].value();
+            if (auto v = boost::any_cast<std::string>(&value)) {
+                return *v;
+            }
+        }
+        _logger->warn("{0} is not a string type", flagKey);
+        return "";
+    }
+    catch (std::exception &e) {
+        _logger->error(e.what());
+        return "";
+    }
+}
+
+void Plugin::Flags::SetFlagsLogLevel(const int &logLevel /*=2*/) {
+    try {
+        switch (logLevel) {
+        case 0/*Panic*/:
+            _logger->info("log level being set to Panic(critical)");
+            _logger->set_level(spd::level::critical);
+            break;
+        case 1/*Fatal*/: 
+            _logger->info("log level being set to Fatal(critical)");
+            _logger->set_level(spd::level::critical);
+            break;
+        case 2/*Error*/:
+            _logger->info("log level being set to Error");
+            _logger->set_level(spd::level::err);
+            break;
+        case 3/*Warn*/: 
+            _logger->info("log level being set to Warn");
+            _logger->set_level(spd::level::warn);
+            break;
+        case 4/*Info*/:
+            _logger->info("log level being set to Info");
+            _logger->set_level(spd::level::info);
+            break;
+        case 5/*Debug*/:
+            _logger->debug("log level being set to Debug");
+            _logger->set_level(spd::level::debug);
+            break;
+        default:
+            _logger->warn("log level {0} not supported", logLevel);
+            break;
+        }
+    }
+    catch (std::exception &e) {
+        _logger->error(e.what());
+    }
+}
+/*
+int main(int argc, char **argv) {
+    Plugin::Flags test;
+    test.SetFlagsLogLevel(0);
+    test.SetFlagsLogLevel(1);
+    test.SetFlagsLogLevel(2);
+    test.SetFlagsLogLevel(3);
+    test.SetFlagsLogLevel(4);
+    test.SetFlagsLogLevel(5);
+    test.SetFlagsLogLevel(2);
+
+    test.SetFlags();
+    test.ParseFlags(argc, argv);
+    test.ShowVariablesMap();
+    std::cout << std::endl;
+    test.GetFlagBoolValue("stand-alone-port");
+    test.GetFlagIntValue("stand-alone-port");
+    test.GetFlagStrValue("stand-alone-port");
+
+    test.GetFlagBoolValue("blah");
+    test.GetFlagIntValue("blah");
+    test.GetFlagStrValue("blah");
+
+    test.GetFlagBoolValue("stand-alone");
+    test.GetFlagIntValue("stand-alone");
+    test.GetFlagStrValue("stand-alone");
+
+    test.GetFlagBoolValue("config");
+    test.GetFlagIntValue("config");
+    test.GetFlagStrValue("config");
+
+}*/

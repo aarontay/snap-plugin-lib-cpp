@@ -45,6 +45,7 @@ namespace Plugin {
     */
     enum RpcType {
         GRPC = 2,
+        GRPCStream = 3
     };
 
     /**
@@ -104,6 +105,13 @@ namespace Plugin {
         * Using exclusive overwrites the default value of (false).
         */
         bool exclusive;
+
+        /**
+        * Unsecure is a legacy value not used for grpc, but needed to avoid
+		* calling SetKey needlessly.
+        */
+        bool unsecure;
+
         /**
         * snapteld caches metrics on the daemon side for a default of 500ms.
         * CacheTTL overwrites the default value of (500ms).
@@ -116,6 +124,36 @@ namespace Plugin {
         * Strategy overwrites the default value of (LRU).
         */
         Strategy strategy;
+
+        /**
+        *
+        */
+        std::string cert_path;
+
+        /**
+        *
+        */
+        std::string key_path;
+
+        /**
+        *
+        */
+        bool tls_enabled;
+
+        /**
+        *
+        */
+        bool root_cert_paths;
+
+        /**
+        *
+        */
+        bool stand_alone;
+
+        /**
+        *
+        */
+        int stand_alone_port;
     };
 
     /**

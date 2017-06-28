@@ -36,6 +36,7 @@ libsnap_la_SOURCES =              \
     snap/config.cc                \
     snap/grpc_export.cc           \
     snap/plugin.cc                \
+    snap/flags.cc                 \
     snap/proxy/plugin_proxy.cc    \
     snap/proxy/collector_proxy.cc \
     snap/proxy/processor_proxy.cc \
@@ -44,5 +45,5 @@ libsnap_la_SOURCES =              \
     snap/rpc/plugin.grpc.pb.cc
 
 libsnap_la_CPPFLAGS = \
-    --std=c++0x       \
+    --std=c++1y       \
     -I$(top_srcdir)/include

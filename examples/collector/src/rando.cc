@@ -20,13 +20,16 @@ limitations under the License.
 #include <snap/config.h>
 #include <snap/plugin.h>
 #include <snap/metric.h>
-#include <snap/flags.hpp>
+#include <snap/flags.h>
 
 using Plugin::Config;
 using Plugin::ConfigPolicy;
 using Plugin::Metric;
 using Plugin::Meta;
 using Plugin::Type;
+
+using std::cout;
+using std::endl;
 
 const ConfigPolicy Rando::get_config_policy() {
     ConfigPolicy policy;
@@ -83,7 +86,9 @@ void Rando::collect_metrics(std::vector<Metric> &metrics) {
 }
 
 int main(int argc, char **argv) {
+    cout << "TEST 1" <<endl;
     Meta meta(Type::Collector, "rando", 1);
+    cout << "TEST 2" <<endl;
     Rando plg = Rando(argc, argv);
     start_collector(&plg, meta);
 }

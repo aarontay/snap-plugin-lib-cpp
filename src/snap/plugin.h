@@ -128,22 +128,22 @@ namespace Plugin {
         /**
         *
         */
-        std::string cert_path;
+       // std::string cert_path;
 
         /**
         *
         */
-        std::string key_path;
+       // std::string key_path;
 
         /**
         *
         */
-        bool tls_enabled;
+       // bool tls_enabled;
 
         /**
         *
         */
-        bool root_cert_paths;
+      //  bool root_cert_paths;
 
         /**
         *

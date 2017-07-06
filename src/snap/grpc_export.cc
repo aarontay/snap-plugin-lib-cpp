@@ -61,12 +61,10 @@ Plugin::GRPCExportImpl* Plugin::GRPCExporter::implement() {
 future<void> Plugin::GRPCExportImpl::DoExport(shared_ptr<PluginInterface> plugin, const Meta *meta) {
     this->plugin = std::move(plugin);
     this->meta = meta;
-    
-    //if (this->meta->stand_alone) cout << "I'M STANDING ALONE"<< endl;
-    
     doConfigure();
     doRegister();
     doAdvertise();
+
     auto self = this->shared_from_this();
     return std::async(std::launch::deferred, [=](){ self->doJoin(); });
 }
@@ -121,12 +119,12 @@ void Plugin::GRPCExportImpl::doAdvertise() {
                 {"Unsecure", meta->unsecure},
                 {"CacheTTL", meta->cache_ttl.count()},
                 {"RoutingStrategy", meta->strategy},
-                {"CertPath", ""},
-                {"KeyPath", ""},
-                {"TLSEnabled", false},
-                {"RootCertPaths", false},
-                {"StandAloneEnabled", true},
-                {"StandAlonePort", 8183},
+    //            {"CertPath", ""},
+    //            {"KeyPath", ""},
+    //            {"TLSEnabled", false},
+    //            {"RootCertPaths", false},
+                {"StandAloneEnabled", meta->stand_alone},
+                {"StandAlonePort", meta->stand_alone_port},
             }
         },
         {"ListenAddress", ss.str()},
@@ -140,4 +138,8 @@ void Plugin::GRPCExportImpl::doAdvertise() {
 
 void Plugin::GRPCExportImpl::doJoin() {
     server->Wait();
+}
+
+void Plugin::GRPCExportImpl::doShutdown() {
+    server->Shutdown();
 }

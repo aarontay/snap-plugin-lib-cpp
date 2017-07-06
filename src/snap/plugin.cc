@@ -57,9 +57,10 @@ Plugin::Meta::Meta(Type type, std::string name, int version) :
                      unsecure(true),
                      cache_ttl(std::chrono::milliseconds(500)),
                      strategy(Strategy::LRU),
-                     cert_path(cert_path),
-                     tls_enabled(tls_enabled),
-                     root_cert_paths(root_cert_paths),
+//                     cert_path(""),
+//                     key_path(""),
+//                     tls_enabled(false),
+//                     root_cert_paths(""),
                      stand_alone(stand_alone),
                      stand_alone_port(stand_alone_port) {}
 
@@ -115,12 +116,20 @@ void Plugin::start_publisher(PublisherInterface* publisher,
 }
 
 static void start_plugin(Plugin::PluginInterface* plugin, const Plugin::Meta& meta) {
-    //Plugin::Proxy::PluginImpl prox(plugin);
-    //std::thread t1(&Plugin::Proxy::PluginImpl::HeartbeatWatch, prox);
     auto exporter = Plugin::LibSetup::exporter_provider();
     // disable deleting the plugin instance
     auto plugin_ptr = shared_ptr<Plugin::PluginInterface>(plugin, [](void*){});
     auto completion = exporter->ExportPlugin(plugin_ptr, &meta);
+    if (meta.stand_alone) {
+        Plugin::Proxy::PluginImpl prox(plugin);
+        auto heartbeat = std::async(std::launch::async, &Plugin::Proxy::PluginImpl::HeartbeatWatch, prox);
+        int httpPort = meta.stand_alone_port;
+
+        auto httpevent = 
+        
+    }
     completion.get();
     //t1.join();
 }
+
+

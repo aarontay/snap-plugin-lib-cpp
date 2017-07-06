@@ -52,5 +52,7 @@ namespace Plugin {
 
         /* blocking method - waits for the server to finish. */
         void doJoin();
+
+        void doShutdown();
     };
 }

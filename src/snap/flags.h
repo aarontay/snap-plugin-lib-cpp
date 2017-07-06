@@ -1,5 +1,4 @@
-#ifndef PLUGIN_FLAGS_H
-#define PLUGIN_FLAGS_H
+#pragma once
 
 #include <boost/program_options.hpp>
 #include <iostream>
@@ -125,5 +124,3 @@ namespace Plugin {
         void PrintConfigFileOptions() { std::cout << _config_file << std::endl; }
     };
 } // namespace Plugin
-
-#endif // PLUGIN_FLAGS_H

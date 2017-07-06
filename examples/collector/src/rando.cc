@@ -27,6 +27,7 @@ using Plugin::ConfigPolicy;
 using Plugin::Metric;
 using Plugin::Meta;
 using Plugin::Type;
+using Plugin::Flags;
 
 using std::cout;
 using std::endl;
@@ -86,9 +87,21 @@ void Rando::collect_metrics(std::vector<Metric> &metrics) {
 }
 
 int main(int argc, char **argv) {
-    cout << "TEST 1" <<endl;
+    Flags cli;
+    cli.SetFlags();
+    cli.ParseFlags(argc, argv);
+    
     Meta meta(Type::Collector, "rando", 1);
-    cout << "TEST 2" <<endl;
-    Rando plg = Rando(argc, argv);
+
+    if (cli.GetFlagsVM().count("version")) {
+        cout << meta.name << " version "  << meta.version << endl;
+        exit(0);
+    }
+    if (cli.GetFlagsVM().count("stand-alone")) {
+        meta.stand_alone = true;
+        meta.stand_alone_port = cli.GetFlagIntValue("stand-alone-port");
+    }
+
+    Rando plg;
     start_collector(&plg, meta);
 }

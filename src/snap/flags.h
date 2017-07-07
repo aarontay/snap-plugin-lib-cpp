@@ -98,29 +98,29 @@ namespace Plugin {
         void SetFlagsLogLevel(const int &logLevel = 2);
 
         int helpFlagCalled() {
-            std::cout << _visible << std::endl;
+            _logger->info(_visible);
             return 0;
         }
 
         po::options_description GetCommandOptions() { return _command; }
-        void PrintCommandOptions() { std::cout << _command << std::endl; }
+        void PrintCommandOptions() { _logger->info(_command); }
 
         po::options_description GetGlobalOptions() { return _global; }
-        void PrintGlobalOptions() { std::cout << _global << std::endl; }
+        void PrintGlobalOptions() {_logger->info( _global); }
 
         po::options_description GetHiddenOptions() { return _hidden; }
-        void PrintHiddenOptions() { std::cout << _hidden << std::endl; }
+        void PrintHiddenOptions() {_logger->info( _hidden); }
 
         po::options_description GetAdditionalOptions() { return _additional; }
-        void PrintAdditionalOptions() { std::cout << _additional << std::endl; }
+        void PrintAdditionalOptions() { _logger->info(_additional); }
 
         po::options_description GetVisibleOptions() { return _visible; }
-        void PrintVisibleOptions() { std::cout << _visible << std::endl; }
+        void PrintVisibleOptions() { _logger->info(_visible); }
 
         po::options_description GetCommandLineOptions() { return _command_line; }
-        void PrintCommandLineOptions() { std::cout << _command_line << std::endl; }
+        void PrintCommandLineOptions() { _logger->info(_command_line); }
 
         po::options_description GetConfigFileOptions() { return _config_file; }
-        void PrintConfigFileOptions() { std::cout << _config_file << std::endl; }
+        void PrintConfigFileOptions() { _logger->info(_config_file); }
     };
 } // namespace Plugin

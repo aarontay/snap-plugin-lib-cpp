@@ -14,6 +14,8 @@ limitations under the License.
 #include <grpc++/grpc++.h>
 #include <iostream>
 #include <thread>
+#include <string>
+#include <ctime>
 
 #include "snap/proxy/plugin_proxy.h"
 #include "snap/rpc/plugin.pb.h"
@@ -34,8 +36,9 @@ PluginImpl::PluginImpl(Plugin::PluginInterface* plugin) : plugin(plugin) {}
 Status PluginImpl::Ping(ServerContext* context, const Empty* req,
                         ErrReply* resp) {
     _lastPing = std::chrono::system_clock::now();
-    // Change to log
-    std::cout << "Heartbeat received at: " << _lastPing << std::endl;
+    std::time_t t = std::chrono::system_clock::to_time_t(_lastPing);
+    std::string time(std::ctime(&t));
+    _logger->info("Heartbeat received at: " + time);
     return Status::OK;
 }
 
@@ -51,21 +54,22 @@ Status PluginImpl::GetConfigPolicy(ServerContext* context, const Empty* req,
 }
 
 void PluginImpl::HeartbeatWatch() {
+    _logger = spdlog::stdout_logger_mt("Heart Beat Watch");
     _lastPing = std::chrono::system_clock::now();
-    std::cout << "Heartbeat started" << std::endl;
+    _logger->info("Heartbeat started");
     int count = 0;
     while (1) {
         if ((std::chrono::system_clock::now() - _lastPing).count() >= _pingTimeoutDuration.count()) {
             ++count;
-            std::cout << "Heartbeat timeout " << count 
-                        << " of " << _pingTimeoutLimit 
-                        << ".  (Duration between checks " << _pingTimeoutDuration.count() << ")" << std::endl;
+            _logger->info("Heartbeat timeout " + std::to_string(count) +
+                          " of " + std::to_string( _pingTimeoutLimit) +
+                          ".  (Duration between checks " + std::to_string(_pingTimeoutDuration.count()) + ")");
             if (count >= _pingTimeoutLimit) {
-                std::cout << "Heartbeat timeout expired!" << std::endl;
+                _logger->info("Heartbeat timeout expired!");
                 exit(0);
             }
         } else {
-            std::cout << "Heartbeat timeout reset";
+            _logger->info("Heartbeat timeout reset");
             count = 0;
         }
         std::this_thread::sleep_for(_pingTimeoutDuration);

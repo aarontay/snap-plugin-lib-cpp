@@ -294,14 +294,14 @@ int Plugin::Flags::ParseFlags(const int &argc, char **argv,
 void Plugin::Flags::ShowVariablesMap() {
     try {
         for (const auto& it : _flags) {
-            std::cout << it.first.c_str() << " ";
+            _logger->info(it.first.c_str());
             auto& value = it.second.value();
             if (auto v = boost::any_cast<bool>(&value))
-                std::cout << *v << std::endl;
+                _logger->info(*v);
             else if (auto v = boost::any_cast<int>(&value))
-                std::cout << *v << std::endl;
+                _logger->info(*v);
             else if (auto v = boost::any_cast<std::string>(&value))
-                std::cout << *v << std::endl;
+                _logger->info(*v);
             else
                 _logger->warn("variable map value type not supported");
         }

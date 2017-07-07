@@ -13,14 +13,17 @@ limitations under the License.
 */
 #include "rando.h"
 
+#include <iostream>
+#include <string>
 #include <time.h>
 #include <vector>
-#include <iostream>
 
 #include <snap/config.h>
 #include <snap/plugin.h>
 #include <snap/metric.h>
 #include <snap/flags.h>
+
+#include <spdlog/spdlog.h>
 
 using Plugin::Config;
 using Plugin::ConfigPolicy;
@@ -28,9 +31,6 @@ using Plugin::Metric;
 using Plugin::Meta;
 using Plugin::Type;
 using Plugin::Flags;
-
-using std::cout;
-using std::endl;
 
 const ConfigPolicy Rando::get_config_policy() {
     ConfigPolicy policy;
@@ -87,6 +87,8 @@ void Rando::collect_metrics(std::vector<Metric> &metrics) {
 }
 
 int main(int argc, char **argv) {
+    std::shared_ptr<spd::logger> logger = spdlog::stdout_logger_mt("rando");
+
     Flags cli;
     cli.SetFlags();
     cli.ParseFlags(argc, argv);
@@ -94,7 +96,7 @@ int main(int argc, char **argv) {
     Meta meta(Type::Collector, "rando", 1);
 
     if (cli.GetFlagsVM().count("version")) {
-        cout << meta.name << " version "  << meta.version << endl;
+        logger->info(meta.name + " version " + std::to_string(meta.version));
         exit(0);
     }
     if (cli.GetFlagsVM().count("stand-alone")) {

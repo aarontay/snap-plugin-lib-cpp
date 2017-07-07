@@ -12,14 +12,17 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 #pragma once
-#include <iostream>
 #include <chrono>
 #include <ctime>
-#include <iomanip>
 #include <grpc++/grpc++.h>
+#include <iomanip>
+#include <iostream>
+#include <spdlog/spdlog.h>
 
 #include "snap/rpc/plugin.pb.h"
 #include "snap/plugin.h"
+
+namespace spd = spdlog;
 
 namespace Plugin {
     namespace Proxy {
@@ -60,6 +63,7 @@ namespace Plugin {
 
         private:
             Plugin::PluginInterface* plugin;
+            std::shared_ptr<spd::logger> _logger;
             std::chrono::system_clock::time_point _lastPing;
             // PingTimeoutLimit is the number of successively missed pin health checks
             // which must occur before the plugin is stopped
